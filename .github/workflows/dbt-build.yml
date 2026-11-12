@@ -17,4 +17,6 @@ jobs:
       - run: python scripts/generate_data.py
       - run: dbt build
       - name: Incremental model matches a full refresh after late data
-        run: ./scripts/check_incremental_parity.sh | tee parity.txt && grep -q ": 0 rows differ" parity.txt
+        run: |
+          ./scripts/check_incremental_parity.sh | tee parity.txt
+          grep -q ": 0 rows differ" parity.txt

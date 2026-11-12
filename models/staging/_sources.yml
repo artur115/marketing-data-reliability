@@ -1,0 +1,23 @@
+version: 2
+
+sources:
+  - name: raw
+    description: >
+      Raw exports as they land from upstream tools (email platform, web
+      analytics, orders service, orchestrator). Read straight from CSV with every
+      column as text; staging models own the casting.
+    meta:
+      external_location: "read_csv('data/raw/{name}.csv', header = true, all_varchar = true)"
+    tables:
+      - name: users
+        description: Account registrations. Profiles can be re-exported, so user_id is not unique here.
+      - name: campaigns
+        description: Email campaign catalog.
+      - name: email_events
+        description: Email sends, opens, clicks, bounces and unsubscribes. Contains re-delivered duplicates and late rows.
+      - name: web_events
+        description: Product analytics events. Anonymous rows have an empty user_id.
+      - name: orders
+        description: One row per order version. A refund writes a new row with a later updated_at.
+      - name: pipeline_runs
+        description: Orchestrator run log. duration_seconds is in SECONDS.

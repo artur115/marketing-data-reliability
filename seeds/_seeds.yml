@@ -1,0 +1,49 @@
+version: 2
+
+seeds:
+  - name: table_criticality_tiers
+    description: >
+      One row per monitored table. Tier 1 = exec/finance-facing marts, tier 2 =
+      inputs to tier 1, tier 3 = slow-moving reference data. All time targets are
+      in MINUTES; the column names say so on purpose.
+    config:
+      column_types:
+        table_name: varchar
+        tier: varchar
+        owner_team: varchar
+        refresh_cadence_minutes: integer
+        freshness_target_minutes: integer
+        max_runtime_minutes: integer
+        uptime_target_pct: double
+    columns:
+      - name: table_name
+        data_tests: [unique, not_null]
+      - name: tier
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [tier_1, tier_2, tier_3]
+      - name: freshness_target_minutes
+        description: Max acceptable age of the newest successful load, in minutes.
+        data_tests:
+          - not_null
+          # 5 minutes .. 7 days. A value like 7200 for a "2 hour" target means
+          # someone typed seconds into a minutes column.
+          - within_range:
+              arguments:
+                min_value: 5
+                max_value: 4320
+      - name: max_runtime_minutes
+        data_tests:
+          - not_null
+          - within_range:
+              arguments:
+                min_value: 1
+                max_value: 240
+      - name: uptime_target_pct
+        data_tests:
+          - within_range:
+              arguments:
+                min_value: 50
+                max_value: 100

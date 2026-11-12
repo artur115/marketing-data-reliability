@@ -1,0 +1,112 @@
+version: 2
+
+models:
+  - name: stg_users
+    description: One row per registered user (latest profile version).
+    columns:
+      - name: user_id
+        data_tests: [unique, not_null]
+      - name: registered_at
+        data_tests: [not_null]
+      - name: signup_channel
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [organic, paid_search, referral, social]
+
+  - name: stg_campaigns
+    description: One row per email campaign.
+    columns:
+      - name: campaign_id
+        data_tests: [unique, not_null]
+      - name: campaign_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [onboarding, newsletter, activation, promo, reactivation, content]
+
+  - name: stg_email_events
+    description: One row per email event, duplicates removed, event_type normalized to lower case.
+    columns:
+      - name: event_id
+        data_tests: [unique, not_null]
+      - name: event_type
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [send, bounce, open, click, unsubscribe]
+      - name: campaign_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_campaigns')
+                field: campaign_id
+      - name: user_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_users')
+                field: user_id
+
+  - name: stg_web_events
+    description: One row per web event, duplicates removed.
+    columns:
+      - name: event_id
+        data_tests: [unique, not_null]
+      - name: event_name
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [page_view, signup_complete, search, create_project, checkout]
+      - name: user_id
+        description: Null for anonymous traffic.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_users')
+                field: user_id
+
+  - name: stg_orders
+    description: One row per order, current version only.
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+      - name: user_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_users')
+                field: user_id
+      - name: order_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [completed, refunded, cancelled]
+      - name: amount_usd
+        data_tests:
+          - not_null
+          - within_range:
+              arguments:
+                min_value: 0
+                max_value: 100000
+
+  - name: stg_pipeline_runs
+    description: One row per scheduled pipeline run.
+    columns:
+      - name: run_id
+        data_tests: [unique, not_null]
+      - name: table_name
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('table_criticality_tiers')
+                field: table_name
+      - name: run_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [success, failed]

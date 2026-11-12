@@ -1,0 +1,97 @@
+version: 2
+
+models:
+  - name: fct_campaign_performance
+    description: >
+      One row per email campaign. Recipient-level engagement (unique opens and
+      clicks) plus last-click attributed orders and revenue. The schema is an
+      enforced contract: downstream dashboards can rely on these names and types.
+    config:
+      contract:
+        enforced: true
+    constraints:
+      - type: primary_key
+        columns: [campaign_id]
+    columns:
+      - name: campaign_id
+        data_type: varchar
+        constraints:
+          - type: not_null
+        data_tests: [unique, not_null]
+      - name: campaign_name
+        data_type: varchar
+      - name: campaign_type
+        data_type: varchar
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [onboarding, newsletter, activation, promo, reactivation, content]
+      - name: is_triggered
+        data_type: boolean
+      - name: launched_at
+        data_type: timestamp
+      - name: recipients
+        data_type: bigint
+      - name: delivered
+        data_type: bigint
+      - name: unique_opens
+        data_type: bigint
+      - name: unique_clicks
+        data_type: bigint
+      - name: unsubscribes
+        data_type: bigint
+      - name: open_rate
+        data_type: double
+        data_tests:
+          - within_range:
+              arguments: {min_value: 0, max_value: 1}
+      - name: click_rate
+        data_type: double
+        data_tests:
+          - within_range:
+              arguments: {min_value: 0, max_value: 1}
+      - name: click_to_open_rate
+        data_type: double
+      - name: attributed_orders
+        data_type: bigint
+      - name: attributed_revenue_usd
+        data_type: decimal(18,2)
+      - name: revenue_per_delivered_usd
+        data_type: double
+
+  - name: fct_funnel_daily
+    description: >
+      Daily registration cohorts by signup channel: registration -> first key
+      action -> first order. Use is_cohort_complete to exclude cohorts whose
+      conversion window has not closed yet.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [cohort_date, signup_channel]
+    columns:
+      - name: cohort_date
+        data_tests: [not_null]
+      - name: signup_channel
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [organic, paid_search, referral, social]
+      - name: activation_rate
+        data_tests:
+          - within_range:
+              arguments: {min_value: 0, max_value: 1}
+      - name: conversion_rate
+        data_tests:
+          - within_range:
+              arguments: {min_value: 0, max_value: 1}
+
+  - name: dim_users
+    description: One row per registered user with lifecycle stage and email engagement summary.
+    columns:
+      - name: user_id
+        data_tests: [unique, not_null]
+      - name: lifecycle_stage
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [registered, activated, customer]

@@ -1,0 +1,40 @@
+name: marketing_data_reliability
+version: "1.0.0"
+config-version: 2
+profile: marketing_data_reliability
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+clean-targets: ["target", "dbt_packages"]
+
+vars:
+  # Incremental model: re-scan rows loaded this many hours before the current
+  # high-water mark, to catch rows that a slow loader committed out of order.
+  late_data_lookback_hours: 24
+  # Last-click attribution window for email clicks -> orders.
+  attribution_window_days: 7
+  # Funnel windows, measured from registration.
+  activation_window_days: 7
+  conversion_window_days: 30
+
+models:
+  marketing_data_reliability:
+    staging:
+      +materialized: view
+      +schema: staging
+    intermediate:
+      +materialized: table
+      +schema: intermediate
+    marts:
+      +materialized: table
+      +schema: marts
+
+seeds:
+  marketing_data_reliability:
+    +schema: reference
+
+data_tests:
+  marketing_data_reliability:
+    +severity: error

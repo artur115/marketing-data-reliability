@@ -1,0 +1,34 @@
+version: 2
+
+models:
+  - name: fct_table_sla_daily
+    description: >
+      One row per monitored table per day: did the table meet its freshness,
+      uptime and runtime targets? Targets come from the table_criticality_tiers
+      seed. All durations are in minutes.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [table_name, sla_date]
+    columns:
+      - name: table_name
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('table_criticality_tiers')
+                field: table_name
+      - name: tier
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [tier_1, tier_2, tier_3]
+      - name: max_staleness_minutes
+        data_tests:
+          - not_null
+          - within_range:
+              arguments: {min_value: 0, max_value: 4320}
+      - name: uptime_pct
+        data_tests:
+          - within_range:
+              arguments: {min_value: 0, max_value: 100}

@@ -1,0 +1,53 @@
+version: 2
+
+models:
+  - name: int_campaign_user_engagement
+    description: >
+      Incremental. One row per campaign x user with first/last touch timestamps
+      and counts. See the model header for the late-data strategy.
+    columns:
+      - name: campaign_user_key
+        data_tests: [unique, not_null]
+      - name: campaign_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_campaigns')
+                field: campaign_id
+      - name: user_id
+        data_tests: [not_null]
+
+  - name: int_order_attribution
+    description: One row per order with its last-click email campaign (if any).
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+      - name: attributed_campaign_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_campaigns')
+                field: campaign_id
+
+  - name: int_user_milestones
+    description: One row per user with registration, first key action and first order timestamps.
+    columns:
+      - name: user_id
+        data_tests: [unique, not_null]
+
+  - name: int_pipeline_runs
+    description: One row per pipeline run with duration converted to minutes and the table's SLA tier attached.
+    columns:
+      - name: run_id
+        data_tests: [unique, not_null]
+      - name: duration_minutes
+        description: >
+          Run time in minutes. Typical runs take 1-90 minutes; anything over 12
+          hours is almost certainly a seconds value that skipped the /60.
+        data_tests:
+          - not_null
+          - within_range:
+              arguments:
+                min_value: 0
+                max_value: 720

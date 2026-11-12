@@ -1,0 +1,20 @@
+name: dbt build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python scripts/generate_data.py
+      - run: dbt build
+      - name: Incremental model matches a full refresh after late data
+        run: ./scripts/check_incremental_parity.sh | tee parity.txt && grep -q ": 0 rows differ" parity.txt

@@ -1,0 +1,9 @@
+table_name,tier,owner_team,refresh_cadence_minutes,freshness_target_minutes,max_runtime_minutes,uptime_target_pct
+fct_campaign_performance,tier_1,marketing-analytics,60,120,30,99.0
+fct_funnel_daily,tier_1,growth-analytics,60,120,30,99.0
+dim_users,tier_1,growth-analytics,60,180,20,99.0
+int_campaign_user_engagement,tier_2,marketing-analytics,60,240,45,97.0
+stg_email_events,tier_2,data-platform,30,90,15,97.0
+stg_web_events,tier_2,data-platform,30,90,20,97.0
+stg_orders,tier_2,data-platform,30,90,15,97.0
+stg_campaigns,tier_3,data-platform,1440,2880,10,95.0

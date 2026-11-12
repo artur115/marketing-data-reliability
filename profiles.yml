@@ -1,0 +1,8 @@
+# Local, file-based warehouse. Nothing to sign up for.
+marketing_data_reliability:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: data/warehouse.duckdb
+      threads: 4
